@@ -1,9 +1,3 @@
-#!/usr/bin/env python 
-
-""" 
-A simple echo server,
-to test tcp networking code
-""" 
 
 import socket 
 

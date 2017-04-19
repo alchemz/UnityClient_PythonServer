@@ -1,115 +1,66 @@
-using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using System;
-using System.IO;
 using System.Net.Sockets;
 
- 
+public class TCP_Client : MonoBehaviour {
 
-public class TCPClient : MonoBehaviour
-{
-    public String host = "127.0.0.1";
-    public Int32 port = 50000;
-  
+	public string server="127.0.0.1";
+	public int port=50000;
+	public string message;
 
-    internal Boolean socket_ready = false;
-    internal String input_buffer = "";
-    TcpClient tcp_socket;
-    NetworkStream net_stream;
+	public void Start()
+	{
+		SendMessageToServer (message);
+	}
+	public void SendMessageToServer(string message)
+	{
+		Connect (server, port, message);
+	}
 
-    StreamWriter socket_writer;
-    StreamReader socket_reader;
+	void Connect(String server, int port, String message)
+	{
+		message="Hello, this is from client";
+		try{
+			//create a TcpClient
+			TcpClient client = new TcpClient(server, port);
 
+			//Translate the passed message to ASCII and store it as a Byte Array
+			Byte[] data= System.Text.Encoding.ASCII.GetBytes(message);
 
+			//get a client stream for reading and writing
+			NetworkStream stream= client.GetStream();
 
-    void Update()
-    {
-        string received_data = readSocket();
-        string key_stroke = Input.inputString;
+			//send message to connected TcpServer
+			stream.Write(data, 0, data.Length);
 
-        // Collects keystrokes into a buffer
-        if (Input.GetKeyDown(KeyCode.None)){
-            input_buffer += key_stroke;
+			Debug.Log("Sent:{0}"+ message);
 
-            if (Input.GetKeyDown(KeyCode.Return)){
-                // Send the buffer, clean it
-                input_buffer = "quit";
-                Debug.Log("Sending: " + input_buffer);
-            	writeSocket(input_buffer);
-            	
-            }
+			//buffer to store the response bytes
+			data= new Byte[256];
 
-        }
+			//string to store the response ASCII representation
+			String responseData= String.Empty;
 
+			//Read the first batch of the TcpServer response bytes
+			Int32 bytes= stream.Read(data, 0, data.Length);
+			responseData=System.Text.Encoding.ASCII.GetString(data,0,bytes);
+			Debug.Log("Received:{0}"+responseData);
 
-        if (received_data != "")
-        {
-        	// Do something with the received data,
-        	// print it in the log for now
-            Debug.Log(received_data);
-        }
-    }
+			//close everything
+			stream.Close();
+			client.Close();
+		}
+		catch(ArgumentException e) {
+			Debug.Log("ArgumentedNullException:{0}"+e);
+		}
+		catch(SocketException e) {
+			Debug.Log("SocketException:{0}"+e);
+		}
 
+		//Debug.Log("Press Enter to continue...");
+		Console.Read ();
 
-    void Awake()
-    {
-        setupSocket();
-    }
-
-    void OnApplicationQuit()
-    {
-        closeSocket();
-    }
-
-    public void setupSocket()
-    {
-        try
-        {
-            tcp_socket = new TcpClient(host, port);
-
-            net_stream = tcp_socket.GetStream();
-            socket_writer = new StreamWriter(net_stream);
-            socket_reader = new StreamReader(net_stream);
-
-            socket_ready = true;
-        }
-        catch (Exception e)
-        {
-        	// Something went wrong
-            Debug.Log("Socket error: " + e);
-        }
-    }
-
-    public void writeSocket(string line)
-    {
-        if (!socket_ready)
-            return;
-            
-        line = line + "\r\n";
-        socket_writer.Write(line);
-        socket_writer.Flush();
-    }
-
-    public String readSocket()
-    {
-        if (!socket_ready)
-            return "";
-
-        if (net_stream.DataAvailable)
-            return socket_reader.ReadLine();
-
-        return "";
-    }
-
-    public void closeSocket()
-    {
-        if (!socket_ready)
-            return;
-
-        socket_writer.Close();
-        socket_reader.Close();
-        tcp_socket.Close();
-        socket_ready = false;
-    }
-
+	}
 }

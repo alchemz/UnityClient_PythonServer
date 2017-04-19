@@ -5,9 +5,10 @@ def Main():
     host = "127.0.0.1"
     port = 50000
     data_j = {
-    'name' : 'ACME',
-    'shares' : 100,
-    'price' : 542.23}
+ 			 "Name":"Ling",
+  			 "Level":7,
+  			 "Stats":[[1,2,3],[4,7,9],[-10,5,6]]
+  			 }
     json_str=json.dumps(data_j).encode('utf-8')
    
     mySocket = socket.socket()

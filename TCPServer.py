@@ -1,27 +1,26 @@
-
-import socket 
-
-host = '127.0.0.1' 
-port = 50000 
-backlog = 5 
-size = 1024 
-message="Hello World!"
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-s.bind((host,port)) 
-s.listen(backlog) 
-
-while 1:
-    client, address = s.accept() 
-    print ("Client connected")
-    client.send(message.encode('utf-8')) 
-
-    while 1: 
-        data = client.recv(size).rstrip('\r\n')
-        if data: 
-            if data=="quit":
-                client.send("Bye!\n")
-                client.close()
-                break
-            else:
-                client.send("You just said: " + data + "\n") 
-
+import socket
+ 
+def Main():
+    host = "127.0.0.1"
+    port = 50000
+     
+    mySocket = socket.socket()
+    mySocket.bind((host,port))
+     
+    mySocket.listen(1)
+    conn, addr = mySocket.accept()
+    print ("Connection from: " + str(addr))
+    while True:
+            data = conn.recv(1024).decode()
+            if not data:
+                    break
+            print ("from connected  user: " + str(data))
+             
+            data = str(data).upper()
+            print ("sending: " + str(data))
+            conn.send(data.encode())
+             
+    conn.close()
+     
+if __name__ == '__main__':
+    Main()
